@@ -1,0 +1,331 @@
+---
+title: 'march31: Regression and Kendall'
+author: "Jordy Taylor"
+date: "Tuesday, March 31, 2015"
+output: html_document
+---
+1: Functions
+```{r}
+add3<-function(a,b,c)
+  {
+  a+b+c
+  }
+#now call the function with some data
+add3(1, 10, .05)
+#11.05
+```
+
+Write a function call t.tail that always returns the area under the curve in the two tails of a t distribution. So the integral of the values of the tails of a distribution.
+
+```{r}
+x<-seq(8,28)
+plot(dnorm(x,mean=18, sd=3.162278)~x)
+t.tail<-function(arg)
+  
+
+```
+
+
+2. Non-Parametric
+
+```{r}
+acorns <- read.delim("C:/Users/Jordy/Desktop/Biometry Lecture Notes/acorns.dat")
+View(acorns)
+
+Atlantic<-acorns[acorns$Region=="Atlantic",]
+Atlantic
+California<-acorns[acorns$Region=="California",]
+California
+
+
+lm(Acorn_size~Range, data=Atlantic)
+plot(Acorn_size~Range, data=Atlantic)
+abline(coef(lm(Acorn_size~Range, data=Atlantic)))
+summary(lm(Acorn_size~Range, data=Atlantic))
+#.1499 of the variation of Range to Acorn size in the atlantic
+
+
+#Residuals for Atlantic:
+A<-lm(Acorn_size~Range, data=Atlantic)
+plot(resid(A)~fitted(A))
+plot(A)
+
+#California data
+
+lm(Acorn_size~Range, data=California)
+plot(Acorn_size~Range, data=California)
+abline(coef(lm(Acorn_size~Range, data=California)))
+summary(lm(Acorn_size~Range, data=California))
+
+
+#Residuals for California:
+
+C<-lm(Acorn_size~Range, data=California)
+plot(resid(C)~California$Acorn_size)
+
+
+
+```
+Log Transform this data:
+
+```{r}  
+#Atlantic
+lm.h<-lm(log(Acorn_size)~Range, data=Atlantic)
+plot(log(Acorn_size)~Range, data=Atlantic)
+abline(coef(lm.h))
+summary(lm.h)
+plot(lm.h)
+#.2942
+
+#Residuals:
+plot(resid(lm.h)~Atlantic$Range)
+plot(resid(lm.h)~fitted(lm.h))
+
+#California
+lm.c<-lm(log(Acorn_size)~Range, data=California)
+plot(log(Acorn_size)~Range, data=California)
+abline(coef(lm.c))
+summary(lm.c)
+#.01495
+
+#Residuals:
+plot(resid(lm.c)~California$Range)
+
+```
+
+
+
+Use Kendall's Robut Regressions Technique to estimate the slope and intercept:
+
+```{r}
+x<-Atlantic$Range
+y<-Atlantic$Acorn_size
+
+kendall.robust<-function(x,y)
+  {
+  Svec<-NULL
+  for (i in 1: length(x))
+    {
+    for (j in 1:length(y))
+      {
+      if (j>i)
+        {
+        Svec<-c(Svec,(y[j]-y[i])/(x[j]-x[i]))
+        }
+      }
+    }
+  b1<-median(Svec)
+  b1
+bo<-median(y-b1*x)
+bo
+c(bo,b1)
+  }
+
+kendall.robust(Atlantic$Range,Atlantic$Acorn_size)
+
+cor.test(y, x, method="kendall")
+
+#data:  y and x
+#z = 3.4155, p-value = 0.0006367
+#alternative hypothesis: true tau is not equal to 0
+#sample estimates:
+#      tau 
+#0.4662342
+
+```
+
+
+
+
+
+3. Multiple Regression: test whether calcium concentration affects the amount of mercury in muscle.
+
+```{r}
+
+bass <- read.delim("C:/Users/Jordy/Desktop/Biometry Lecture Notes/bass.dat")
+View(bass)
+
+lm.calcium<-lm(log(Avg_Mercury)~Calcium, data=bass)
+lm.calcium
+plot(log(Avg_Mercury)~Calcium, data=bass)
+abline(coef(lm.calcium))
+
+plot(resid(lm.calcium)~bass$Calcium)
+
+summary(lm.calcium)
+#Variability explain= 27%
+
+```
+
+Now add in Alkalinity, Chlorophyll, and pH as additional terms.
+
+```{r}
+#Effect of Calcium and Alkalinity:
+
+lm.calc.alk<-lm(log(Avg_Mercury)~Calcium+Alkalinity, data=bass)
+lm.calc.alk
+plot(log(Avg_Mercury)~Calcium+Alkalinity, data=bass)
+abline(coef(lm.calc.alk))
+pairs(bass[,3:7])
+
+summary(lm.calc.alk)
+#.5045
+
+
+
+#Effect of Calcium, Alkalinity, and Chlorophyll
+
+lm.calc.alk.chlo<-lm(log(Avg_Mercury)~Calcium+Alkalinity+Chlorophyll, data=bass)
+lm.calc.alk.chlo
+plot(log(Avg_Mercury)~Calcium+Alkalinity+Chlorophyll, data=bass)
+summary(lm.calc.alk.chlo)
+
+#Effect of Everything on Mercury
+
+lm.calc.alk.chlo.ph<-lm(log(Avg_Mercury)~Calcium+Alkalinity+Chlorophyll+pH, data=bass)
+
+lm.calc.alk.chlo.ph
+plot(log(Avg_Mercury)~Calcium+Alkalinity+Chlorophyll+pH, data=bass)
+summary(lm.calc.alk.chlo.ph)
+
+
+
+
+```
+
+When you look at the different plots yielded by each added variable, you see that the independent variable has some sort of a different effect on the mercury content found. It looks as if the Alkalinity/pH have a significant effect on the Mercury content along with the chlorophyll activity. You can see a linear relationship between the pH/alkalinity on the effect of mercury and with the chlorophyll activity, you can see a clumped distribution of the dependent variable. More than one variable can effect the dependent variable, where 2 independent variables will have a greater effect than just 1 independent variable. 
+
+
+
+
+Phenotypes Data
+
+```{r}
+library(dplyr)
+library("dplyr", lib.loc="~/R/win-library/3.1")
+setwd("C:/Users/Jordy/Desktop/Biometry Lecture Notes")
+phen<- read.csv("phenotypes2015-03-30.csv")
+phen
+names(phen)
+dim(phen)
+tmp<-phen%
+
+
+phenotypes2015 <- read.csv("C:/Users/Jordy/Desktop/Biometry Lecture Notes/phenotypes2015.csv")
+View(phenotypes2015)
+
+#filter allows you to select just rows so 1a1 and 1a2, so we are reducing to just the rows 1a1 and 1a2. 
+
+
+tmp<-phen%>%select(Accession, treatment)
+tmp
+tmp[1:10,]
+tmp<-phen[,c("Accession","treatment")]
+tmp
+
+#summarize does the summary statistics, so this gives ou the average fruit number and avg. fruit length for all the accession numbers for 1a1 and 1a2.
+
+
+tmp2<-phen%>%filter(experiment%in%c("1a1","1a2"))%>%group_by(Accession)
+tmp2
+
+
+tmp3<-tmp2%>%summarise(meanfruit=mean(fruitnum,na.rm=T), meanlength=mean(avg.fruit.length, na.rm=T))
+
+tmp3
+
+plot(meanfruit~meanlength, data=tmp3)
+regression<-lm(meanfruit~meanlength, data=tmp3)
+abline(coef(regression))
+summary(regression)
+
+#coef gives you the y intercept and slope to calculate the abline
+
+
+
+```
+
+
+
+
+1 Regression using likelihood
+See if you can use the code in the regression likelihood lecture to estimate the relationship between
+log(body size) and log(brain size) from the 'Animals' data set found in the MASS library. Use
+log(body size) as the independent (X) variable.
+Check your estimates using 'lm()'.
+For fun, try to use the function probf.plot instead of probf in the optim statement. This will
+animate the curve-fitting process.
+
+```{r}
+library("MASS", lib.loc="C:/Program Files/R/R-3.1.2/library")
+View(Animals)
+
+body<-c(Animals$body)
+body
+brain<-c(Animals$brain)
+brain
+
+
+
+
+
+lm.bodyonbrain<-lm(logbody~logbrain)
+lm.bodyonbrain
+
+plot(log(body)~log(brain), data=Animals)
+abline(coef(lm.bodyonbrain))
+
+
+
+probf <- function(p,X,Y)
+{
+  b0 <- p[1]; b1 <- p[2]; sd <- p[3]
+
+  rsd <- (b0+b1*X)-Y
+  -sum(dnorm(rsd,mean=0,sd=sd,log=T))
+}
+
+X=body
+Y=brain
+
+optim(c(1,0,5),probf,X=log(body),Y=log(brain))
+
+
+
+
+probf.plot <- function(p,X,Y)
+{
+  b0 <- p[1]; b1 <- p[2]; sd <- p[3]
+  rsd <- (b0+b1*X)-Y
+  def.par <- par(no.readonly = TRUE)
+  layout(matrix(c(1,1,2,2),2,2,byrow=T),respect=T)
+  plot(Y~X,main=paste("Ln Likelihood:",sum(dnorm(rsd,mean=0,sd=sd,log=T)),"\nY = ",round(b0,2),"+",round(b1,4),"X"))
+  abline(c(b0,b1))
+  tmp=apply(cbind(X,Y,rsd),1,function(x,rsd){
+    points(c(x[1],x[1]),c(x[2],(x[2]+x[3])),type="l",
+           col=ifelse(x[3]<0,"green","red"))
+  },rsd=rsd)
+  hist(rsd,freq=F,main=paste("Distribution of rsd\nmu=0, sigma=",sd))
+  rug(rsd,col="red")
+  pts <- seq(min(rsd)*2,max(rsd)*2,length=100)
+  points(dnorm(pts,0,sd)~pts,type="l",col="red")
+  par(def.par)
+  Sys.sleep(0.5)
+  -sum(dnorm(rsd,mean=0,sd=sd,log=T))
+} 
+
+
+
+
+probf.plot(c(1,0,5), X=log(body), Y=log(brain))
+
+optim(c(1,0),probf.plot, X=log(body), Y=log(brain), data=Animals)
+
+
+```
+
+
+
+
+
+

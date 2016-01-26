@@ -1,0 +1,349 @@
+---
+title: "Exam 1"
+author: "Jordy Taylor"
+date: "Friday, March 27, 2015"
+output: word_document
+---
+
+2.1: Compare a sample to a known Distribution
+
+a.) Snake SVL observed is 13.5 cm, suspected species SVL falls somewhere with a mean of 18cm and a variance of 10.  So I wanted to know what the probability would be if an observed snake with a SVL of 13.5 cm would come from a suspectedspecies with an SVL with u=18cm and sd=3.162278? 
+
+First Calculate SD= SRT of variance
+```{r}
+
+#I wanted to look at the normal distribution (for a visual's sake becuase I love pictures) of the SVL for the suspected species. 
+x<-seq(8,28)
+plot(dnorm(x,mean=18, sd=3.162278)~x)
+
+
+#From the observed snake (SVL of 13.5cm), I found the SD. What is the chance this observed snake is thesw suspected species? 
+
+sqrt(10)    #3.162278
+pnorm(13.5, mean=18, sd=3.162278)  # pnorm=0.07736448
+
+#I found there to be a 7% chance this snake is from this population. Therefore, based on the known distribution SVL, I do believe that the observed snake belongs to the suspected species based on a 95% confidence interval. 
+
+```
+
+b.) These data are collected on the ratio of leaf length to width:
+```{r}
+ratio<-c(2.1, 1.1, 2.3, 1.5, 1.9, 1.8, 1.4, 3.0, 1.6, .9)
+ratio
+sd(ratio) #.6113737
+mean(ratio) #1.76
+
+#Test the hypothesis that leaf length-width ratio is equal to (null mean) 1.8 to the mean of observed ratios which = 1.76.
+
+t.test(ratio,mu=1.8,var=equal)
+
+#The p-value is .8407,for the collected data compared to the null mean.  So there is an 84% chance that the observed mean is equal to the null mean of 1.8. We can fail to reject the null. Therefore, leaf length-width ratio observed of 1.76 has an 84% chance of being equal to the null mean of 1.8.
+
+plot(dnorm(ratio, mean=1.76, sd=.6113737)~ratio)
+
+#I just plotted this for the sake of having something visual to look at, because I wanted to confirm (1) I could plot this for my own sake and (2) because I really like pictures to help visually solidify what I am looking at. 
+
+
+```
+
+2.2 Two Samples:
+
+intake <- read.csv("C:/Users/Jordy/Desktop/Biometry Lecture Notes/intake.csv")
+View(intake)
+
+```{r}
+pre<-c(5260,5470,5640,6180,6390,6516,6805,7515,7515,8230,8770)
+pre
+
+post<-c(3910,4220,3885,5160,5645,4680,5265,5975,6790,6900,7335)
+post
+
+women<-cbind(pre,post)
+
+t.test(pre,post,paired=TRUE)
+
+#t = 11.9376, df = 10, p-value = 3.068e-07
+
+#A paired t-test is used because these are the same individuals before and after some sort of treatment (intake). The results of this paired t.test were (p-value) 3.068e-07 indicating that we can reject the null hypothesis since it is smaller that .05.  Rejecting the null indicates that there is a difference in the 'pre' intake compared to the 'post' intake individuals. So therefore, we can conclude based on these data that the energy intake of woman are affected post-menstrually. 
+
+```
+
+Mullet caught in the day vs. caught at night. This is not a paired t-test
+since these are independent of the individuals, rather dependent on the time of day.
+
+```{r}
+day<-c(23,67,34,48,24,51,26)
+night<- c(80,53,73,84,42,49,47)
+
+
+t.test(day,night,paired=FALSE)
+
+#This is not a paired t.test because these measurements (day/night) are independent of one another. The results of the t.test indicate a p-value=0.03166, indicating that there is a difference between the level of mullet activity at different times of the day. We can therefore conclude that the time of day affects how many mullet are caught. The time of day is the independent variable, number of mullet caught is the dependent variable.  Based on the p-value of this unpaired t.test, we can reject the null (based on a 95% confidence interval).
+```
+
+
+2.3 Multiple Samples
+
+1a.) Is there a treatment effect on root mass? Shoot Mass?
+```{r}
+
+rice <- read.csv("C:/Users/Jordy/Desktop/Biometry Lecture Notes/rice.csv")
+#View(rice)
+
+#For Shoot Dry Mass
+
+shootaov<-aov(ShootDryMass~trt+Block, data=rice)
+
+#Want to look at aov of the effect of treatment and block on the shootdrymass, because the block has an effect on the Shootdrymass as well.
+
+summary(shootaov)
+
+shootresiduals<-residuals(shootaov)
+
+#I want to look at the residuals, all of the values that deviate from the mean null.
+
+qqnorm(shootresiduals)
+qqline(shootresiduals)
+
+#Here, you can see that only 2 outliers exist as a result from the effect of treatment +block on the ShootDryMass. The Q-Q plot of the residuals with only 2 outliars can suggest that the treatment and block did not have a significant effect on the shootdrymass. Using a shapiro test, just to get a value to confirm significance or not, a p-value of .0889 was found. This indicates that there is not a significant effect on treatment on the ShootDryMass. Therefore, we can fail to reject the null hypothesis.
+
+shapiro.test(shootresiduals)
+
+#p-value=.0889
+```
+
+```{r}
+#For Root Dry Mass
+#Now I want to see if treatment+block have any effect on the RootDryMass. 
+
+rootaov<-aov(RootDryMass~trt+Block, data=rice)
+summary(rootaov)
+
+rootresiduals<-residuals(rootaov)
+
+qqnorm(rootresiduals)
+qqline(rootresiduals)
+
+#The Q-Q plot here indicates that there are a 3 outliars that deviate from the null mean of the residuals.  Using the p-value of the rootdrymass, a p-value yielded a value of .09741. This p-value as well as the majority of the residuals that fall along the mean still indicates that this fails to reject the null, which states that treatment does not have a significant effect on rootdrymass.(There is no difference between a group that had the one treatment as oppossed to all other treatments administered). Compared to the shootdrymass, we can see that treatment has more (just barely) of an effect on the shootdrymass than it does the rootdrymass, because there is a smaller p-value indicated for the effect on shootdrymass. A smaller p-value indicates that there is a difference between the treatment groups.
+
+shapiro.test(rootresiduals)
+
+#p-value: .09741
+#I trust the Q-Q plot more than the shapiro test, because looking at the plot shows that my data are normal, and that only 3 of these values are outliars. This would suggest, and comfortably confirm with myself, that these residual data are normal, meaning that the data are normally distributed. Here the p value is greater than .05, so we cannot reject the hypothesis that the data is normal. This is also the same conclusion for the Shoot residuals as well. Both the shoot and root (original data) are normally distributed following both the Q-Q plot and the shapiro test, even thought I trust the Q-Q plot much more. 
+
+#Usually we are presented with original data that is not normally distributed, so sometimes, we must log transform the original data set in order to look at associations we might not have been able to see before. After log transforming the original data, we can look at the residuals to see the outliars, mean, etc. to see if the data are normal. So, to see if the orginal root and shoot data were normal, I tested for normality by transforming the original data as well. 
+
+
+```
+Even though the untransformed data looked normal, I log transformed the original data just in case to double check and make sure which would be more normal ( basically which residuals fit the QQ plot better.)
+Log transform the original data (response variable) and then run aov on the residuals again to test for normality-need evidence that we double checked
+
+```{r}
+#LOG TRANSFORMED FOR THE SHOOT DRY MASS
+shootalog<-log(rice$ShootDryMass) #log transformed shoot dry mass 
+shootalog   #log transformed of the shooty dry mass
+
+shoot.log.aov<-aov(shootalog~trt+Block, data=rice)  #run aov for the log transformed data of shoot dry mass
+summary(shoot.log.aov)
+
+shootresidlog<-residuals(shoot.log.aov)  #residuals of the log of the shoots
+shootresidlog
+
+qqnorm(shootresidlog)
+qqline(shootresidlog)
+
+
+
+shapiro.test(shootresidlog)
+#pvalue: .0003019
+
+
+
+#LOG TRANSFORMED DATA FOR THE ROOT DRY MASS
+
+
+rootalog<-log(rice$RootDryMass) #log transformed root dry mass 
+rootalog   #log transformed of the root dry mass
+
+root.log.aov<-aov(rootalog~trt+Block, data=rice)  #run aov for the log transformed data of root dry mass
+summary(root.log.aov)
+
+rootresidlog<-residuals(root.log.aov)  #residuals of the log of the roots
+rootresidlog
+
+qqnorm(rootresidlog)
+qqline(rootresidlog)
+
+shapiro.test(rootresidlog)
+
+#.0001793
+
+#I used the log transformed shoot data to produce a QQ plot based on the residuals to see if there was more normality produced by log transforming. There was not...there was an increased # of residuals that deviated from the mean. This is a scenario which the log transformation skews that data. The p-value from the shapiro test for both shoot and root is less that .05, we reject the null hypothesis that the data is normally distributed. Now, we have both visual (QQplot) and statistical evidence (shapiro test) that show that the ORIGINAL Shoot and Root data are normally distributed,and that the LOG transform data are not normally distributed. 
+#Transformations can be great if you want to test the hypothesis to see that there is significant differences among treatments, however, in these transformations, it skewed the interpretation. 
+```
+
+
+SO NOW THAT WE HAVE ESTABLISHED THAT THE ORIGINAL DATA ARE NORMALLY DISTRIBUTED, we can look at the individual treatments to see if there effect of treatment on root mass or shoot mass.  Looking just at the QQ plot of the residuals plotted previously, it looks as if there is no effect since the residuals do not have much variation in both root and shoot.
+
+Well, looking at all of the treatments, it looks as if there are 2 types of treatment groups, ones administered with one treatment (controls): F10, NH4C1, NH4NO3, and then these treatments plus another treatment (the actual treatment groups because it is the controls + some treatment which is ANU843): F10+ANU843, NH4C1+ANU843, NH4NO3+ANU843. SO I wanted to do a t.test of each control, to then its treatment to see if there was any significant effect of that specific treatment on one of the control substances for both the ROOT and SHOOT DATA.
+
+
+ROOT.
+```{r}
+#(1root) To see if ANU843 had an effect on F10:
+
+F10root<-c(56,66,40,43,55,66,41,67,40,35,44,41)
+F10root
+
+F10plustreatroot<-c(6,4,4,7,5,6,6,5,7,3,12,7)
+F10plustreatroot
+
+Roottestone<-cbind(F10root, F10plustreatroot)
+
+t.test(F10root,F10plustreatroot,paired=TRUE)
+
+#The individual effect of ANU843 on F10 yields a p-value of 1.021e-07 indicating that the treatment ANU843 does have an effect on root mass.
+
+#(2root) To see if ANU843 had an effect on NH4C1
+
+NH4Clroot<-c(12,20,21,15,5,18,18,7,9,6,13,7)
+NH4Clrootplustreat<-c(4,10,9,10,8,9,1,12,8,17,8,14)
+
+cbind(NH4Clroot,NH4Clrootplustreat)
+t.test(NH4Clroot,NH4Clrootplustreat, paired=TRUE)
+
+#The effect of ANU843 on NH4Cl yields a p-value of .1908 indicating that the ANU843 treatment had NO effect on root mass post administering.
+
+#(3root) To see if ANU843 had an effect on NH4NO3 root mass
+
+NH4NO3<-c(12,18,17,23,21,23,14,14,12,23,11,20)
+NH4NO3plustreatment<-c(19,18,21,7,17,18,16,11,6,11,7,15)
+  
+cbind(NH4NO3, NH4NO3plustreatment)
+
+t.test(NH4NO3, NH4NO3plustreatment, paired=TRUE)
+
+#The effect of ANU843 on NH4NO3 yields a p-value of .08428 indicating that the treatment had no effect on root mass post administering.
+
+```
+NOW TO LOOK AT SHOOT DATA
+
+```{r}
+#(1shoot) To see if ANU843 had an effect on F10 shoot:
+
+F10shoot<-c(132,120,108,134,119,125,98,122,114,82,37,109)
+F10shoot
+
+F10plustreatshoot<-c(8,6,3,1,7,5,10,17,3,5,15,8)
+F10plustreatshoot
+
+Shoottestone<-cbind(F10shoot, F10plustreatshoot)
+
+t.test(F10shoot,F10plustreatshoot,paired=TRUE)
+
+#The effect of ANU843 on F10 yields a p-value of 1.14-07 indicating that the treatment had a significant effect on shoot mass post administering.
+
+
+#(2shoot) to see if ANU843 had an effect on NH4CL SHOOT
+
+NH4Clshoot<-c(45,60,87,57,26,78,45,40,44,32,55,34)
+NH4Clshootplustreat<-c(22,36,54,53,42,30,35,59,38,70,59,61)
+
+cbind(NH4Clshoot,NH4Clshootplustreat)
+t.test(NH4Clshoot,NH4Clshootplustreat, paired=TRUE)
+
+#The effect of ANU843 on NH4CL yields a p-value of .6315 indicating that the treatment had no significant effect on shoot mass post administering.
+
+#(3shoot) To see if ANU843 had an effect on NH4NO3 shoot mass
+
+NH4NO3shoot<-c(71,78,87,80,92,129,48,60,46,74,51,64)
+NH4NO3shootplustreatment<-c(75,75,96,59,96,100,75,68,35,53,47,79)
+  
+cbind(NH4NO3shoot, NH4NO3shootplustreatment)
+
+t.test(NH4NO3shoot, NH4NO3shootplustreatment, paired=TRUE)
+
+#The effect of ANU843 on NH4NO3 yields a p-value of .706 indicating that the treatment had no effect on shoot mass post administering.
+
+#Therefore, (after all of that), we can generally say that most of the treatments had no effect on the root and shoot mass. HOWEVER, there was some effect of treatments on root and shoot that cannot be shown using the shapiro or qq plot and looking at overall data. In the shoot data, the effect of ANU843 on the F10 groups showed significant influence on both the root and shoot mass.
+
+```
+1b.)Do the treatments affect root mass differently than shoot mass?
+
+```{r}
+
+rice <- read.csv("C:/Users/Jordy/Desktop/Biometry Lecture Notes/rice.csv")
+#View(rice)
+
+
+with(rice, interaction.plot(Block,trt,RootDryMass))
+
+#Here we can see that ANU843 effect on NH4NO3 where both have main effects and an interaction. The lines are not parallel, where the NH4No3 is scoring higher than the NH403 plus ANU843, since its line is above it. Here we can see that there is an effect on block since the block scores on average are different. 
+#The NH4Cl and the NH4CL+ANU843 show that there is a group main effect, an interaction,and no condition (block) effect. The lines are not parallel, while the NH403 plus ANU843 scores higher than the NH403 group, the condition averages are about the same.
+
+
+
+with(rice, interaction.plot(Block,trt,ShootDryMass))
+
+#Here we can see that there is a strong interaction of the ANU843 with the NH4CL, that there is an interaction and no main effects, since the averages for both groups are about the same.
+#For the interaction of NH4No3, we can see that there is a condition main effect and an interaction, but no group effect. 
+
+
+#these plots illustrated show different types of interaction of the treatment groups and different averages for the blocks, showing that the treatments do have a different effect on the root and on the shoot. 
+
+
+```
+
+
+
+2.) Determine the sources of variation that explain variation in the estimates for the 'egg' data: Variance Components and Analysis
+
+
+```{r}
+#2.) Source of Variation Technicians and in Labs (Technicians are nested within the labs so you use a nested anova)
+
+
+#Eggs Get Nested Anovas
+
+eggs<- read.csv("C:/Users/Jordy/Desktop/Biometry Lecture Notes/eggs.csv")
+View(eggs)
+
+egg.aov<-aov(Fat~Lab+Technician%in%Lab, data=eggs)
+summary(egg.aov)
+
+f<-.08860/.04125
+f
+
+#2.147879
+#The bigger the f value, the greater the significance of that significant value.
+
+1-pf(f, 5,6)
+
+#0.1895753
+#it's a decent f value. 2 or more is a good f value
+
+summary(aov(Fat~Lab/Technician, data=eggs))
+
+
+```
+
+
+Estimating Variance of These Groups
+
+```{r}
+
+s2.Lab<-(.08860-.04125)/(2*4)  #source of variation due to lab
+s2.LabTech<-(.04125-.00924)/4  #source of variation due to technicians nested
+s2<-.00924  #source of variation of the residuals
+
+pct.Lab<-100*s2.Lab/(s2.Lab+s2.LabTech+s2)
+pct.LabTech<-100*s2.LabTech/(s2.Lab+s2.LabTech+s2)
+pct.resid<-100*s2/(s2.Lab+s2.LabTech+s2)
+
+pct.Lab  #25.55454    #showing how much variation is due to the lab
+pct.LabTech  #34.55124  #showing how much variation is due to the technicians within each lab
+
+pct.resid   #39.89422  #show how much variation is due to the residuals
+```
+
+

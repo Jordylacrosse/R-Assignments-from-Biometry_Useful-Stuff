@@ -1,0 +1,214 @@
+---
+title: "April 7 Lab"
+author: "Jordy Taylor"
+date: "Tuesday, April 07, 2015"
+output: html_document
+---
+
+ANCOVA: 
+------------------------------
+DOWNLOAD ACORN DATASET, VARIABLES WITH SPECIES, REGION, AREA OR RANGE, ACORN SIZE AND TREE HEIGHT
+
+TEST WHETHER THE SLOPE THAT RELATES ACORN SIZE TO RANGE DIFFERS FOR THE DIFFERENT REGIONS (atlantic versus california). If there is no difference in slope, is there a difference in range size in the 2 regions when you take acorn size into account?
+
+ACORN SIZE TO RANGE: For Atlantic and Califoria 
+```{r}
+acorns <- read.delim("C:/Users/Jordy/Desktop/Biometry Lecture Notes/acorns.dat")
+View(acorns)
+
+Atlantic<-acorns[acorns$Region=="Atlantic",]
+Atlantic
+California<-acorns[acorns$Region=="California",]
+California
+
+
+#For Atlantic  and Cali
+
+Atl<-lm(Acorn_size~Range, data=acorns, subset=Region=="Atlantic")
+Cali<-lm(Acorn_size~Range, data=acorns, subset=Region=="California")
+
+plot(Acorn_size~Range, data=acorns)  #VERY DIFFERENT SLOPES
+
+abline(coef(Atl), lty=1)
+abline(coef(Cali), lty=2)
+
+#AOV
+aov.acorn<-(aov(Acorn_size~Range*Region, data=acorns))  #significant effect of region 
+aov.acorn
+
+residualsacorns<-resid(aov.acorn)
+residualsacorns
+fit.acorn<-fitted(aov.acorn)
+fit.acorn
+
+plot(aov.acorn)
+
+#Now log transform it
+log.aov.acorn<-(aov(log(Acorn_size)~log(Range)*Region, data=acorns))
+log.aov.acorn
+
+plot(log.aov.acorn)  #variance is not equal
+
+#Now i just want to run this just as a function of just the size logged
+
+log.size<-aov(log(Acorn_size)~Range*Region, data=acorns) #this is with the interaction
+plot(log.size)
+summary(log.size)
+
+log.size.noi<-aov(log(Acorn_size)~Range+Region, data=acorns)  #this is with no interaction
+plot(log.size.noi)
+summary(log.size.noi)
+
+#so range does not really have an effect on the acorn size, rather, there is an effect of region on the acorn size (as shown by the P value)
+
+
+```
+
+Now look to see if there is an effect with tree height instead of acorn size
+
+```{r}
+
+Atlantic<-lm(Tree_Height~Range, data=acorns, subset=Region=="Atlantic")
+California<-lm(Tree_Height~Range, data=acorns, subset=Region=="California")
+
+plot(Tree_Height~Range, data=acorns)  #VERY DIFFERENT SLOPES
+
+abline(coef(Atlantic), lty=1)
+abline(coef(California), lty=2)
+
+#AOV
+aov.acorn.height<-(aov(Tree_Height~Range*Region, data=acorns))  #significant effect of region 
+aov.acorn.height
+
+residualstree<-resid(aov.acorn.height)
+residualstree
+fit.tree<-fitted(aov.acorn.height)
+fit.tree
+
+plot(aov.acorn.height)
+
+#Now log transform it
+log.aov.tree<-(aov(log(Tree_Height)~log(Range)*Region, data=acorns))
+log.aov.tree
+
+plot(log.aov.tree)  #variance is not equal
+
+#Now i just want to run this just as a function of just the size logged
+
+tree.interaction<-aov(Tree_Height~Range*Region, data=acorns) #this is with the interaction
+
+plot(tree.interaction)
+summary(tree.interaction)
+
+tree.no.interaction<-aov(Tree_Height~Range+Region, data=acorns)  #this is with no interaction
+plot(tree.no.interaction)
+summary(tree.no.interaction)
+
+
+```
+
+UNEQUAL VARIANCE FOR SOME SQUID
+
+```{r}
+squid <- read.csv("C:/Users/Jordy/Desktop/Biometry Lecture Notes/squid.csv")
+View(squid)
+
+library(lattice)
+xyplot(Testisweight~DML|MONTH, data=squid)
+
+
+boxplot(Testisweight~MONTH, data=squid)
+
+#Do a normal Ancova to see how data fit assumption with the interaction
+
+interaction<-aov(Testisweight~DML*as.factor(MONTH), data=squid)
+plot(interaction)
+summary(interaction)
+
+
+#DO A NORMAL ANCOVA TO SEE HOW THE DATA FIT WITHOUT THE INTERATION
+no.interaction<-aov(Testisweight~DML+as.factor(MONTH), data=squid)
+plot(no.interaction)
+summary(no.interaction)
+```
+
+Log Transform Both X and y
+
+```{r}
+#well it still doesn't look nice, so log transform the data to see if we can get a better fitting model
+
+log.interaction<-aov(log(Testisweight)~log(DML)*as.factor(MONTH), data=squid)
+plot(log.interaction)
+summary(log.interaction)
+
+
+#DO A NORMAL ANCOVA TO SEE HOW THE DATA FIT WITHOUT THE INTERATION
+log.no.interaction<-aov(log(Testisweight)~log(DML)+as.factor(MONTH), data=squid)
+plot(log.no.interaction)
+summary(log.no.interaction)
+
+
+```
+
+All of this data looks like shit, so you want to normalize the residuals
+
+```{r}
+
+library(nlme)
+fit.reg<-gls(Testisweight~DML, data=squid)
+summary(fit.reg)
+
+var.fix<-varFixed(~DML)
+fit.var<-gls(Testisweight~DML, weights=var.fix, data=squid)
+summary(fit.var)
+
+anova(fit.reg, fit.var)
+#smaller AIC is better so the one with the VARIATION is better fitting the  model
+
+```
+
+So now try a differnt model to see if it will fit better: exponential
+
+```{r}
+var.fix
+fit.var<-gls(Testisweight~DML, weights=var.fix, data=squid)
+
+varianexp<-varExp(form=~DML)
+fit.exp<-gls(Testisweight~DML, weights=varianexp, data=squid)
+summary(fit.exp)
+anova(fit.var, fit.exp)
+
+#the exponential is lower so it fits better
+
+```
+
+NOw try the power model
+```{r}
+varianexp<-varExp(form=~DML)
+fit.exp<-gls(Testisweight~DML, weights=varianexp, data=squid)
+
+vpow<-varPower(form=~DML)
+fit.pow<-gls(Testisweight~DML, weights=vpow, data=squid)
+
+anova(fit.exp, fit.pow)
+
+#So the power one fits even better than all the other models that we just looked at
+
+#Here i want to identify how there is difference variance within my different groups
+
+varid<-varIdent(form=~1|MONTH)
+fit.id<-gls(sqrt(Testisweight)~as.factor(MONTH), data=squid)
+
+summary(fit.id)
+anova(fit.id)   #month is significantly importnat here because null is not 0
+```
+
+
+```{r}
+varC<-varComb(varPower(form=~DML), varExp(form=~DML), varFixed(~DML))
+fit.com<-gls(Testisweight~DML, data=squid, weights=varC)
+summmary(fit.com)
+anova(fit.com, fit.pow)
+
+
+#These mutha lickers are the exact same model. WTF.

@@ -1,0 +1,44 @@
+Eggs Get Nested Anovas
+
+eggs <- read.csv("C:/Users/Jordy/Desktop/Biometry Lecture Notes/eggs.csv")
+#View(eggs)
+```{r}
+
+eggs <- read.csv("C:/Users/Jordy/Desktop/Biometry Lecture Notes/eggs.csv")
+View(eggs)
+
+egg$lab<-as.factor(eggs$Lab)
+egg$tech<-as.factor(eggs$Technician)
+egg.aov<-aov(Fat~Lab+Technician%in%Lab, data=eggs)
+summary(egg.aov)
+
+f<-.08860/.04125
+f
+
+#2.147879
+#The bigger the f value, the greater the significance.
+
+1-pf(f, 5,6)
+
+#0.1895753
+
+summary(aov(Fat~Lab/Technician, data=eggs))
+
+
+```
+Estimating Variance of These Groups
+```{r}
+
+s2.Lab<-(.08860-.04125)/(2*4)
+s2.LabTech<-(.04125-.00924)/4
+s2<-.00924
+
+pct.Lab<-100*s2.Lab/(s2.Lab+s2.LabTech+s2)
+pct.LabTech<-100*s2.LabTech/(s2.Lab+s2.LabTech+s2)
+pct.resid<-100*s2/(s2.Lab+s2.LabTech+s2)
+
+pct.Lab  #25.55454
+pct.LabTech  #34.55124
+pct.resid   #39.89422
+```
+

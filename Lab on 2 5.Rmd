@@ -1,0 +1,444 @@
+Install the DAAG package
+
+Look at the possum dataset included in DAAG 
+library(DAAG)
+What type of data
+are skull widths? Produce a bar plot or histogram, whichever is appropriate for this
+situation    histogram(possum$skullw)
+view(possum)
+histogram(possum$skull, breaks=7)
+
+produce a conditioned histogram with skull width and sex
+> histogram(~skullw | sex, data=possum)
+now produce another one with sex, population, and skullw  Condition on sex+Pop
+ histogram(~skullw | sex+Pop, data=possum)
+ In the file 'hair-eye.csv' on the biometry website, you will find a data frame of the hair
+and eye colors of statistics students.
+??? What is the distribution of hair color?
+
+> histogram(hair.eye$hair)
+
+??? What is the distribution of eye color?
+
+histogram(hair.eye$eye)
+> plot(table(hair.eye$hair))
+> histogram(hair.eye$eye)
+> plot(hair.eye$eye)
+
+"joint distribution"
+with(hair.eye, table(hair, eye))
+       eye
+hair    Blue Brown Green Hazel
+  Black   20    68     5    15
+  Blond   94     7    16    10
+  Brown   84   119    29    54
+  Red     17    26    14    14
+table(hair.eye$hair, hair.eye$eye)
+
+
+
+2. What is the mean number of offspring per individual in table 1?
+
+
+ num.off frequency
+1        0         5
+2        1        22
+3        2        44
+4        3        59
+5        4        59
+6        5        47
+7        6        31
+8        7        18
+9        8         9
+10       9         4
+11      10         2
+12      11         1
+
+Name this table offspring offspring <-
+find the mean of the offspring  mean.offspring <- sum(offspring$num.off*offspring$frequency)/ sum(offspring$frequency)
+
+For the possum skull width data, estimate the sample
+1. range    range(possum$skullw)
+[1] 50.0 68.6
+
+2. interquartile range (at least two ways)
+Box Plot-
+IQR- 3.125
+ summary(possum$skullw)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+  50.00   54.98   56.35   56.88   58.10   68.60 
+
+For the possum skull width data, estimate the sample
+1. sample variance--var(possum$skullw)
+[1] 9.69342
+
+2. standard deviation
+sd(possum$skullw)
+[1] 3.113426
+
+Take the possum data and make boxplots of
+possum skull widths. Then condition those plots on sex.
+boxplot(skullw~sex, ylab="Possum Skull width", xlab="gender", data=possum)
+ bwplot(skullw~sex, data=possum)
+> 
+
+
+PROBABILITY LAB EXERCISES (1/27)
+
+1.  If you chose a sample from a single throw of a coin, what would the sample space
+be?     heads or tail, so heads=0, tails=1 or heads=1, tails=0
+3. how would you determine P(heads)? it's always 50/50
+4. R has a function called sample() Try sample(iris$Sepal.Width,3,replace=T).
+What does the replace argument do?   sample(iris$Sepal.Width,3,replace=T)
+[1] 3.1 2.8 2.5
+
+sample(c(0,1),10,replace=T)
+ [1] 1 1 1 1 0 0 1 0 1 1
+> mean(sample(c(0,1),10,replace=T))
+[1] 0.5
+
+sample(c(0,1),15,replace=T)
+ [1] 0 0 0 0 1 1 1 0 0 1 1 1 0 1 1
+> mean(sample(c(0,1),15,replace=T))
+[1] 0.4666667
+
+
+ how to get summary stats on entire dataframes and columns from
+dataframes. You have also learned how to condition plots on another variable.
+tapply() provides a mechanism to calculate statistics per group. Try
+tapply(possum$skullw,possum$sex,mean).     f        m 
+56.58837 57.09180 
+
+
+Find the mean, variance and size of possum total length for population (Vic versus
+other).
+mean(possum$totlngth)
+[1] 87.08846
+var(possum$totlngt)
+[1] 18.58084
+
+size:::  length(possum$totlngth)
+[1] 104
+
+Save these vectors (mean etc) into variables (don't overwrite function names) and
+use cbind() to glue the columns together into a dataframe
+
+Mean<-tapply(possum$totlngth,possum$Pop,mean)
+> Variance<- tapply(possum$totlngth,possum$Pop,var)
+> Size<- tapply(possum$totlngth,possum$Pop,length)
+> data.frame(cbind(Mean, Variance, Size))
+          Mean Variance Size
+Vic   87.46739 23.48225   46
+other 86.78793 14.82950   58
+
+
+) the function 'filter()' can subset rows in ways similar to '[]' e.g.
+
+filter(possum, Pop== 'Vic', totlngth<80)
+  case site Pop sex age hdlngth skullw totlngth taill footlgth earconch  eye chest belly
+1   39    2 Vic   f   1    84.7   51.5       75  34.0     68.7     53.4 13.0  25.0    25
+2   42    2 Vic   m   3    85.3   54.1       77  32.0     62.7     51.2 13.8  25.5    33
+3   44    2 Vic   m  NA    85.1   51.5       76  35.5     70.3     52.6 14.4  23.0    27
+
+ possum[possum$Pop=='Vic' & possum$totlngth<80,]
+     case site Pop sex age hdlngth skullw totlngth taill footlgth earconch  eye chest belly
+BB31   39    2 Vic   f   1    84.7   51.5       75  34.0     68.7     53.4 13.0  25.0    25
+BB38   42    2 Vic   m   3    85.3   54.1       77  32.0     62.7     51.2 13.8  25.5    33
+BB41   44    2 Vic   m  NA    85.1   51.5       76  35.5     70.3     52.6 14.4  23.0    27
+> 
+
+
+PIPE STUFF FROM LAB
+library(magrittr)
+> results <- possum %>%
++ group_by(Pop, sex) %>%
++ summarize(n=n(), sd=sd(totlngth), mean=mean(totlngth))
+> results
+Source: local data frame [4 x 5]
+Groups: Pop
+
+    Pop sex  n       sd     mean
+1   Vic   f 24 4.957793 88.33333
+2   Vic   m 22 4.648290 86.52273
+3 other   f 19 2.976025 87.36842
+4 other   m 39 4.218814 86.50513
+
+Discrete distributions
+
+1. Download fruit count
+
+data.frame(fruit_count)
+   block plant fruits diameter
+1      4     1   2027     65.0
+2      5     1   1879     78.5
+3      6     1   2723     76.0
+4      7    17    984     47.0
+5      8     1    442     25.0
+6      9     1    519     28.0
+7     10     1    347     10.0
+8     11     1    666     22.0
+9     12     1   1882     40.0
+10    13     1   1111     54.0
+11    14     1   1669     73.0
+12    15     1   1193     44.0
+
+2. plot distribution using histogram--histogram(fruit_count$fruits)
+3. Imagine the probability of observing Moss plants on a sampling quadrat is 0.25.
+there is a binomial distribution
+
+dbinom(c(0:10),11,0.25)
+ [1] 4.223514e-02 1.548622e-01 2.581036e-01 2.581036e-01 1.720691e-01 8.029890e-02 2.676630e-02
+ [8] 6.372929e-03 1.062155e-03 1.180172e-04 7.867813e-06
+ 
+ 
+ 
+ First estimate the mean proportion of males expected from these data overall.
+ 
+ mean.males<- sum(num.males/12*frq.obs)/sum(frq.obs)
+> mean.males
+[1] 0.480785
+ 
+ 
+  Next based on this proportion (p), find the expected
+number of families for each of the 13 categories of male outcomes.
+
+
+> dbinom(c(0:12),13,.480785)
+ [1] 0.0001993031 0.0023991700 0.0133295645 0.0452575530 0.1047694722 0.1746268179 0.2156022834
+ [8] 0.1996443550 0.1386506715 0.0713268675 0.0264190272 0.0066718930 0.0010296782
+ 
+
+
+Expected:
+expected
+ [1]    1.218738   14.670925   81.510287  276.749936  640.665323 1067.842992 1318.407963
+ [8] 1220.825231  847.848857  436.163795  161.552351   40.798625    6.296482
+ 
+"are mostly girl or mostly boy families more
+common than expected at random?
+
+cbind(expected,frq.obs)
+         expected frq.obs
+ [1,]    1.218738       7
+ [2,]   14.670925      45
+ [3,]   81.510287     181
+ [4,]  276.749936     478
+ [5,]  640.665323     829
+ [6,] 1067.842992    1112
+ [7,] 1318.407963    1343
+ [8,] 1220.825231    1033
+ [9,]  847.848857     670
+[10,]  436.163795     286
+[11,]  161.552351     104
+[12,]   40.798625      24
+[13,]    6.296482       3
+> plot(frq.obs-expected)
+> plot(frq.obs-expected, type="h")
+
+so the expected observed is the same as expected unobserved bc gametes are 50/50
+
+
+CONTINUOUS PROBABILITY DISTRIBUTIONS
+1. plot normal Pdf:  
+x<-seq(-4,4,0.01)
+plot(dnorm(x, mean=0, sd=1)~x)
+> -10:10
+ [1] -10  -9  -8  -7  -6  -5  -4  -3  -2  -1   0   1   2   3   4   5   6   7   8   9  10
+> x<-c(-10:10)
+> dnorm(x, mean=0, sd=1)
+
+y=dnorm(x, mean=0, sd=1)
+> plot(y~x)
+
+2. plot a cumulative distribution with same parameter: 
+
+plot(pnorm(x, mean=0, sd=1)~x)
+
+ it's plotting pnorm
+ 
+ 3. how much of the probability lies to the left of -.5 SD from the mean?
+ pnorm(-0.5, mean=0, sd=1)
+[1] 0.3085375
+
+4. How much of the probability falls between -.3 and .4 SD from the mean 
+pnorm(-0.3:0.4, mean=0, sd=1)
+[1] 0.3820886
+
+5. What real number does this equation equal?
+
+so this is a normal distribution , meaning it is equal to 1. it is a normal bell shaped distribution
+
+6. what is the probability you would observe a number less than or equal to 80 from a population with u=100 and sd=10?  You just plug in 80, rather than 0-80
+
+pnorm(80, mean=100, sd=10)
+[1] 0.02275013
+
+7. check the plant diameters in the cape csv dataset for normality. check using qqnorm and qqline. figure out how to exchange axes. now use the lattice function to look at qqplots for each block separately. use the function qqmatch
+
+library(lattice)
+plant.data<-read.csv("capedata_update2.csv")
+
+qqnorm(Plants$size.cm)
+qqline(Plants$size.cm)
+
+Exchange the axis:   qqnorm(Plants$size.cm, datax=T)
+
+ QQMATH FUNCTION: 
+ qqmath(~Plants$size.cm|Plants$block)
+ you want to set up a qqmath function comparing diameter to blocks
+ 
+ 8. Plot a histogram of 10 random variates pulled from a normal distribution. 
+ rnorm(10,0,1)
+ [1] -0.47708418  1.71084335 -1.01577719  0.40555836 -0.09017541 -0.71413238  1.10216157
+ [8] -0.50566460 -0.80100841 -0.06705293
+ 
+ Now do this for 20 variates:
+ 
+ rnorm(20,0,1)
+ [1]  1.31986408  0.16250715  0.93602611  0.07307712  0.93483603 -1.13430152 -1.88134528
+ [8] -0.83138255  0.85308900 -0.21116831  0.06151982 -0.43740111 -0.28804357  1.16814771
+[15]  1.97939132 -1.65226951 -0.75844024  1.02576431  0.50205387  2.15375905
+> rnorm(20,0,1)->cat
+> plot(hist(cat))
+
+
+I did this for 1000 random data sets to show a normal distribution on a histogram and compared this to a hist of 10. this showed me how sample size increases the normality, then i used a normal qq plot to show trends in each against sample to theoretical quantities.
+hist(rnorm(1000,0,1))
+> hist(rnorm(10,0,1))
+> hist(rnorm(1000,0,1))
+> qqnorm(1000,0,1))
+
+
+LAB PORTION 2 FOR FEBRUARY 5TH.
+
+
+> x.squared<-function(x) {x^2} #create the function
+> x.squared #display the function
+function(x) {x^2}
+> ##function (x) {x^2}
+> x.squared(4)
+[1] 16
+
+Std Error---> SD/ square root of n
+
+
+ rnorm(30,0,1)
+ [1] -0.08129137  1.04763726  0.25537956  0.54658876  0.81416694  1.58585955 -1.37847997
+ [8]  0.30547620  0.04582546  0.49340380 -1.72351771 -0.38173403 -0.06680279  0.25589690
+[15]  0.51507105  0.86808622 -1.02548435 -0.36853927 -0.15528856  0.45573277 -0.34916132
+[22] -1.34472431 -1.70908648  1.12179909  0.63500796 -1.96831347 -0.01661467 -0.91925163
+[29] -0.93781388 -1.63506972
+> sd(rnorm(30,0,1))
+[1] 0.9253813
+> length(rnorm(30,0,1))
+[1] 30
+
+std.err<-function(x)
++ {sd/sqrt(length)}
+> std.err<-function(x)
++ {sd(x)/sqrt(length(x))}
+> std.err(x)
+
+
+USING MAXIMUM LIKELIHOOD TO ESTIMATE FEATURES OF A DISTRIBUTION
+
+1. normal distribution: 
+use the (long, using optim()) approach developed in class to estimate the mean and sd of a normal distribution in the data found in norm.dat
+Then see how well you didd by calculating mean and sd from these data using standard approaches.
+
+p is the vector, dat is saying there will be data.   if p[2]  #vector has 3 compoonents, if the 2nd compoonenet (sd) is greater than 0.
+
+In data set 'norm'
+sd(norm$x)
+[1] 1.767759
+View(norm)
+> mean(norm$x)
+[1] 2.962798
+
+Using the optim approach:  
+
+llike.n<-
+function(p,dat)
+{
+if (p[2]>0) 
+{
+-sum(dnorm(dat,mean=p[1],sd=p[2],log=T))  #will get normal distribution of data with a mean and sd specified below, using a -log
+}
+else
+{
+Inf
+}
+}
+
+
+ANSWER TO #1:
+ llike.n<-
++ function(p,dat)
++ {
++ if (p[2]>0) 
++ {
++ -sum(dnorm(dat,mean=p[1],sd=p[2],log=T))
++ }
++ else
++ {
++ Inf
++ }
++ }
+
+#opt in function tries several repetitions of searching for the best likelihood of the data being seen in a normal disbrituion wiht a mean of 0 and a sd of 1.
+
+> optn.<- optim(c(0,1),llike.n,dat=norm$x)  
+> optn.
+$par
+[1] 2.962624 1.758874
+
+$value
+[1] 198.3626
+
+$counts
+function gradient 
+      75       NA 
+
+$convergence
+[1] 0
+
+$message
+NULL
+
+#2: Chi Squared distribution
+
+llike.chi<-function(p,dat)
+{
+if (p[1]>0)
+{-sum(dchisq(dat,df=p[1],log=T))
+}
+else
+{
+Inf
+}
+}
+
+
+
+opt.chi<-optim(c(1),llike.chi,dat=chisq$x)
+opt.chi
+
+opt.chi<-optim(c(1),llike
+.chi,dat=chisq$x)
+
+> opt.chi
+$par
+[1] 1.773047
+
+$value
+[1] 152.9104
+
+$counts
+function gradient 
+      26       NA 
+
+$convergence
+[1] 0
+
+$message
+NULL

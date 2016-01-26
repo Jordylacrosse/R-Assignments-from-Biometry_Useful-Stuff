@@ -1,0 +1,325 @@
+---
+output: word_document
+---
+
+2.)
+
+
+3.) SUMMARY STATS
+
+    a.The mean does not always equal the median when you DO NOT have normally distributed sample, meaning that the data is skewed and the mean will be directed towards the skew. When there is a skew in the data set, the median is considered to be a better representative of the data. I used the dataset found in library for Titanic. I found the mean of the data to be 68.78125 and the median to be 13.5 in order to express why the mean does not always equal the median.
+  
+```{r}
+  library(lattice)
+View(Titanic)
+mean(Titanic)
+median(Titanic)
+hist(Titanic)
+``` 
+  
+  b. Generally, a useful measure of variation is using a standard deviation. 
+
+Standard Deviation for Possum is: 
+```{r}
+ library(DAAG)
+data(possum)
+View(possum)
+sd(possum$skullw) #3.113426
+  mean(possum$skullw)  #56.88365
+```
+
+for the Versicolor is:  
+
+```{r}
+ library(lattice)
+data(iris)
+View(iris)
+versicolor<-iris[iris$Species=="versicolor",]
+sd(versicolor$Sepal.Width) #0.3137983. 
+  mean(versicolor$Sepal.Width)  #2.77
+```
+
+While these are measured both in cm, we must consider these are on completely different scales of the normal size (mean size) for that organismal part: one being a skull and the other being sepal width. In order to compare these, we must use a coefficient of variance between these two data sets.
+
+```{r}
+CV<-function(mean, sd){(sd/mean)*100}
+#For Skull:
+CV(mean = 56.88365, sd = 3.113426)
+#CV for Skull = 5.473323
+
+```
+
+
+ 
+For Sepal Width 
+```{r}
+
+CV(mean = 2.77,sd = 0.3137983)
+#CV for Sepal Width=11.32846.  
+```
+
+
+It is very clear from the computed CV that, the Sepal Width is more variable than the Skull Width, even though the standard deviation of the Skull Width is higher than the Sepal width.
+
+
+
+4) EDA: EXPLORATORY DATA ANAYLYSIS
+
+a.) Yes, the size of the capedata are increasing as the months progress    further into summer. I identified this by separating each month from eathother, by applying the R-code above for each month.
+---
+```{r}
+capedata_update2 <- read.csv("C:/Users/Jordy/Desktop/Biometry Lecture Notes/R Studio/capedata_update2.csv")
+
+View(capedata_update2)
+June<-(capedata_update2[capedata_update2$date=="6/18/2003",])
+June
+View(capedata_update2)
+June<-(capedata_update2[capedata_update2$date=="6/18/03",])
+June
+
+hist(June$size.cm)
+mean(June$size.cm, na.rm=T)
+#9.067729
+
+July<-(capedata_update2[capedata_update2$date=="7/11/03",])
+July
+
+hist(July$size.cm)
+mean(July$size.cm, na.rm=T)
+#22.86122
+
+August1<-(capedata_update2[capedata_update2$date=="8/8/03",])
+hist(August1$size.cm)
+mean(August1$size.cm, na.rm=T)
+# 42.19388
+
+August2<-(capedata_update2[capedata_update2$date=="8/22/03",])
+hist(August2$size.cm)
+mean(August2$size.cm, na.rm=T)
+#44.20816
+
+
+```
+
+
+
+a.) 
+```{r}
+summary(capedata_update2)
+```
+
+
+The summary statistics shows that the mean of all of the data for all of the months = 34.8. This shows that the mean is skewed to a higher value because of the higher values measured in the later months, compared to those of the earlier months (since the earlier months had lower values, and the later months had higher values. This is an example where the mean does not always equal the median for all the pulled data)
+
+
+b.)
+```{r}
+plot(capedata_update2$date, capedata_update2$size.cm)
+
+```
+
+I made a boxplot of all of the size.cm across all months/dates available. This shows that the sizes are much smaller in June and July and then in August the average size.cm increases and then is pretty consistent across August and then September. In the earlier months, there was not much variation within the values of the sizes, including outliers. However, as months progressed and mean size increased, so did the variation within each set of data (from each month), which is indicated by the variability outside the upper and lower quartiles. 
+
+
+5 for discrete distributions 
+Here I made a vector of the births that occurred, then I made a vector of the frequency of observed births. From here I found the mean number of offspring and got a value of 5.16. Then I calculated the expected frequency of births by doing a Poisson distribution. Then I made a barplot of the observed frequency of births, and then plotted a line of the expected frequency over the top of the observed frequency. 
+
+```{r}
+offspringdata <- read.table("C:/Users/Jordy/Desktop/Biometry Lecture Notes/offspringdata.dat", header=TRUE, quote="\"")
+
+View(offspringdata)
+View(offspringdata)
+table(offspringdata)->tbl
+
+births<- c(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16)
+offspring.freq<-c(2,3,7,10,8,7,8,2,1,1,0,0,0,0,0,1)
+mn.offspring<-sum(offspring.freq*births)/sum(offspring.freq)
+mn.offspring
+expect<- sum(tbl)*dpois(1:16,lambda=mn.offspring)
+
+
+fu<-barplot(offspring.freq,names=births, xlab="Number of offspring", ylab="frequency")
+points(fu,expect,type="b",pch=16)
+```
+
+2. To our hero trying to save his chickens: if he buys more feed then....
+```{r}
+dbinom(c(0),20,0.2)
+#0.01152922 p-value
+```
+
+so there is a 1% chance that his chickies will die if he buys this food. What a true hero!
+
+
+5.1 Likelihoods
+
+1.
+```{r}
+dbinom(13,89,.5)
+# = 2.271528e-12
+plot(1:89,dbinom(c(1:89),89,.5),type="h",xlab="num. of successes",ylab="prob")
+
+```
+
+
+
+2.  We calculated a likelihood on continuous data for both the normal. In order to see If these data sets are from a one population model versus a two population model. We used the 
+```{r}
+#llike.twopop <- function(p, X, Y)
+```
+
+x and y being different populations (either same population (1) or different populations (2). After the optim function has been used to test likelihood of coming from one population, or 2 separate populations, the opt.one$value and the opt.two$value give you the likelihood that these were from the same or different populations. The lower opt value is the one with the greater likelihood. 
+
+
+5.2 Confidence Intervals
+
+1. 92% confidence interval for the population mean?
+
+I named the population data set provided on the problem set handout as a vector named "pop"
+
+```{r}
+pop<-c(97.01,79.8,54.68,71.7,55.67,79.55,55.25,17.32,27.54,32.75,86.2,72.4,94.01,95.04,55.88,94.23,95.76,58.03,60.47,88.7)
+View(pop)
+mean(pop)
+# 68.5995
+qt(.04,19)
+#-1.84953
+std.err<-function(x)
+  {sd(x)/(sqrt(length(x)))
+   }
+std.err(pop)
+68.5995-(-1.84953*5.382519)   #78.55463
+68.5995+(-1.84953*5.382519)   #58.64437
+
+x   <- seq(17.32,97.01,length=20)
+y   <- dnorm(x,mean=68.5995, sd=24.07136)
+plot(x,y, type="l", lwd=1)
+
+boxplot(pop)
+```
+
+
+
+I do not believe a symmetric confidence interval on this data set is reasonable because the data is heavily skewed. The majority of the data is skewed toward  The left tail which is longer; the mass of the distribution is concentrated on the right of the figure. The distribution is said to be left-skewed. This is because the median is greater than the mean. For skewed distributions, the standard deviation gives no information on the asymmetry, so I found the first and third quartiles for this data by using a boxplot. 
+
+
+
+
+5.3
+ T-statistic based test
+ 
+ 1. How does power differ when alpha=.05 and n=15, variance =1
+ 
+ 
+```{r}
+power.t.test(n=15,delta=0,sd=1, sig.level=.05, power=NULL)
+power.t.test(n=15,delta=1,sd=1, sig.level=.05, power=NULL)
+power.t.test(n=15,delta=2,sd=1, sig.level=.05, power=NULL)
+power.t.test(n=15,delta=5,sd=1, sig.level=.05, power=NULL)
+
+
+del<-c(0, 1, 2, 5)
+pow<-c(.025,.752, .9995, 1)
+
+plot(del~pow, type="l",xlab="power",ylab="delta")
+```
+
+
+
+First I found POWER for increasing levels of delta by setting the delta to 0 and the delta to NULL and found the power value as such. Then i increased my delta value accordingly to see what would happen to the power. Power increases as a function of increasing delta, showing that you can reject the null hypothesis
+
+
+
+
+2. Perform a t-test on the 'sleep'data:
+
+```{r}
+
+  library(DAAG)
+data(sleep)
+sleep
+
+b<-c(.7,-1.6,-.2,-1.2,-.1,3.4,3.7,.8,0,2)
+a<-c(1.9,.8,1.1,.1,-.1,4.4,5.5,1.6,4.6,3.4)
+t.test(b,a, paired=TRUE)
+
+```
+
+  These are a paired t-test because it is comparing the same individuals, with 2 different treatment levels. I set up a vector (b) of all of these persons with the yield as a result of the drug1 given for each person, then set up vector (a) of all of these persons with the yield for the drug for each person in the same order. I set up a t-test to yield a p-value of .002833. We can therefore assume, that these groups had different effects on the patients, that it did indeed reject the null. 
+
+3. Bird Taxonomy:
+```{r}
+bird<-c(34,35,34,33,41,27,24,36,39)
+boxplot(bird)
+mean(bird)
+median(bird)
+
+t.test(bird,mu=39)
+
+```
+  
+I made a boxplot of the data to show that 39 is an outlier value of the median and mean of this data set. I also did a t-test to yield a p-value of the probability that this observed data set came from the expected length. A p-value of .01715 shows that these reject the null hypothesis, that these are likely a different species of bird. 
+
+
+
+6. ANOVAS
+
+1. GERM DATASET
+downloaded germ data from website
+
+```{r}
+germ <- read.csv("C:/Users/Jordy/Desktop/Biometry Lecture Notes/R Studio/germ.csv")
+View(germ)
+
+(aov(percent.germ~ Population, data=germ))
+summary(aov(percent.germ~ Population, data=germ))
+plot(percent.germ~ Population, data=germ)
+
+```
+
+
+
+This is a plot of all of the percent.germ seeds as a function of population site over the entire course of 48 days, which rejects the null hypothesis. Over the entire course of 48 days, we see that germination does in fact differ among populations. 
+
+But if we want to look at germination rates just at day 48 (which I am interpreting from the problem set directions), then we must isolate the data just for day 48. 
+```{r}
+germ <- read.csv("C:/Users/Jordy/Desktop/Biometry Lecture Notes/R Studio/germ.csv")
+View(germ)
+days<-germ[germ$Days==48,]
+days
+View(days)
+(aov(percent.germ~ Population, data=days))
+summary(aov(percent.germ~ Population, data=days))
+plot(percent.germ~ Population, data=days)
+
+```
+
+
+
+The summary of this data shows an F value of 3.419 betweent these populations; you can also see from the plot of all of these days that the germination rates do indeed vary across population location. Using the Pr(>F) value of .00571 and the F value, we can strongly reject the null hypothesis. 
+
+2. Tomato Dataset
+
+In the directions it says 'you know how many factors', therefore, we know that we must use the analysis of variance for factors. This is why I used the as.factor function below. 
+
+Import Dataset Tomato
+
+```{r}
+tomato <- read.table("C:/Users/Jordy/Desktop/Biometry Lecture Notes/R Studio/tomato.dat", header=TRUE, quote="\"")
+View(tomato)
+
+View(tomato)
+D<-as.factor(tomato$Density)
+D
+V<-as.factor(tomato$Variety)
+V
+
+(aov(Yield~D*V-(D)-(V),data=tomato))
+summary(aov(Yield~D*V-(D)-(V),data=tomato))
+plot(aov(Yield~D*V-(D)-(V),data=tomato))
+
+with(tomato,interaction.plot(Density,Variety,Yield))
+
+```
+
+Here we can see that there is no interaction between variety P and the densities of the other varieties. However, we can see that there is a similar densities between the varitey of lfe and H which is shown by a slight interaction ~1500 density (x).

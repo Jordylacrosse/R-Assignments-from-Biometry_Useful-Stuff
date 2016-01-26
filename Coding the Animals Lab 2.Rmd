@@ -1,0 +1,100 @@
+---
+title: "Assignment 1 for 1/20"
+author: "Jordy Taylor"
+date: "Tuesday, January 20, 2015"
+output: html_document
+
+
+. Put 1,2,dog, and cat into scalars named a, b, pet1, pet2
+2. assign 2.4, 2.3, 2.5, 3.1, and 4.0 to a vector called vec1
+3. assign -4, 0.3, 1.5, 5.2, and 24.0 to a vector called vec2
+4. make a dataframe, df, with two columns (variables) out of vec1 and vec2
+
+4.2 Operators and functions applied to objects
+1.  vec2 / vec1
+[1] -1.6666667  0.1304348  0.6000000  1.6774194  6.0000000
+
+2. sum(vec1^2)
+[1] 42.91
+
+3.
+4.> var(vec1)
+[1] 0.503
+
+
+```cat
+```{rcat=5}
+1->a
+2->b
+"cat"->pet1
+"dog"->pet2
+
+pet2
+
+"vec1"= c(2.4, 2.3, 2.5, 3.1, 4.0)
+vec1
+
+"vec2"= c(-4, 0.3, 1.5, 5.2,24.0)
+vec2
+ data.frame(vec1, vec2)    this is how to make a data frame with 2 columns
+ 
+ 
+ > rownames(Animals)%in%rownames(mammals)
+ [1]  TRUE  TRUE  TRUE  TRUE  TRUE FALSE
+ [7]  TRUE  TRUE  TRUE FALSE  TRUE  TRUE
+[13]  TRUE  TRUE  TRUE FALSE  TRUE  TRUE
+[19]  TRUE  TRUE  TRUE  TRUE  TRUE  TRUE
+[25]  TRUE FALSE FALSE  TRUE
+> View(Animals)
+> Animals[rownames(Animals)%in%rownames(mammals),]
+  Animals[!rownames(Animals)%in%rownames(mammals),]
+ > Animals[!rownames(Animals)%in%rownames(mammals),]->unique.animals
+> unique.animals
+
+
+> rbind(Animals, mammals)
+                              
+> rbind(Animals, mammals)->all.animals
+> all.animals
+                               
+> rownames(all.animals)
+                              
+> rownames(mammals)
+            
+> rownames(Animals)%in%rownames(mammals)
+ [1]  TRUE  TRUE  TRUE  TRUE  TRUE FALSE
+ [7]  TRUE  TRUE  TRUE FALSE  TRUE  TRUE
+[13]  TRUE  TRUE  TRUE FALSE  TRUE  TRUE
+[19]  TRUE  TRUE  TRUE  TRUE  TRUE  TRUE
+[25]  TRUE FALSE FALSE  TRUE
+> View(Animals)
+> Animals[rownames(Animals)%in%rownames(mammals),]
+                  
+> Animals[!rownames(Animals)%in%rownames(mammals),]
+                  body brain
+Dipliodocus   1.17e+04  50.0
+Potar monkey  1.00e+01 115.0
+Triceratops   9.40e+03  70.0
+Brachiosaurus 8.70e+04 154.5
+Mole          1.22e-01   3.0
+> Animals[!rownames(Animals)%in%rownames(mammals),]->unique.animals
+> unique.animals
+                  body brain
+Dipliodocus   1.17e+04  50.0
+Potar monkey  1.00e+01 115.0
+Triceratops   9.40e+03  70.0
+Brachiosaurus 8.70e+04 154.5
+Mole          1.22e-01   3.0
+> rbind(unique.animals)
+                  body brain
+Dipliodocus   1.17e+04  50.0
+Potar monkey  1.00e+01 115.0
+Triceratops   9.40e+03  70.0
+Brachiosaurus 8.70e+04 154.5
+Mole          1.22e-01   3.0
+> rbind(unique.animals, mammals)
+                               
+
+
+
+ 

@@ -1,0 +1,416 @@
+---
+title: "Problem Set 2"
+author: "Jordy Taylor"
+date: "Wednesday, April 22, 2015"
+output: html_document
+--
+1. Regression
+```{r}
+Fdat <- read.csv("C:/Users/Jordy/Desktop/Biometry Lecture Notes/Fdat.csv")
+
+#Effect of generation on AvgF: single regression
+
+View(Fdat)
+lm.g<-lm(avgF~gen, data=Fdat)
+plot(avgF~gen, data=Fdat)
+abline(coef(lm.g))
+
+summary(lm.g)
+
+#the summary of the lm tells us that th
+
+#Multiple R-squared:  0.4565,  Adjusted R-squared:  0.4564   ---> 46% of the variability is expalined
+
+#Now I examined the residuals associated with just Residuals of lm.g on the Y and the generation on the x
+
+plot(resid(lm.g)~Fdat$gen)
+
+#This shows that there is signficant variation due to generation.
+
+#----------------------------------------------------------------------
+#Now examine the effects of X2 (the NeSc) on the residuals of lm.g
+
+plot(resid(lm.g)~Fdat$NeSc)
+
+#This is also showing that there is significant variation due to the NeSc.
+
+
+lm.NeSc<-lm(resid(lm.g)~(Fdat$NeSc))
+abline(coef(lm.NeSc))
+
+
+#---------------------------------------------------------------------
+
+#Multiple Regression
+
+summary(lm(avgF~NeSc+gen,data=Fdat))
+lm.data<-lm(avgF~NeSc+gen,data=Fdat)
+lm.data
+resid<-residuals(lm.data)
+fit.avgF<-fitted(lm.data)
+plot(resid~fit.avgF)
+qqnorm(resid)
+qqline(resid)
+
+
+#There is evidence here of heteroschedacity shown by the qqnorm and plot so I want to normalize the residuals in order to see if NeSc influences avgF.
+
+
+library(nlme)
+var.fixd<-varFixed(~NeSc+gen)
+fit.varN <-gls(avgF~NeSc+gen, data=Fdat, weights=var.fixd)
+fit.regs <- gls(avgF~NeSc+gen, data=Fdat)
+vexp<-varExp(form=~NeSc+gen)
+fit.exp<-gls(avgF~NeSc+gen, data=Fdat, weights=vexp)
+vpower<-varPower(form=~NeSc+gen)
+power.fit<-gls(avgF~NeSc+gen, data=Fdat, weights=vpower)
+vcomb<-varComb( varPower(form=~NeSc+gen), varExp(form=~NeSc+gen), varFixed(~NeSc+gen), varIdent(form=~NeSc+gen))
+fit.comb<-gls(avgF~NeSc+gen,data=Fdat, weights=vcomb)
+
+anova(fit.regs, fit.exp, power.fit, fit.comb, fit.varN)
+
+#After looking at which model best describes the variation, the fit.regs model has the AIC that is the most negative, and thus the standalone model (that looks at one fitted variable) is the exponential fit model. THis means that this is the model that describes the most variation with regards to the effect of NeSc on avgF over the generations. It should be noted that if all the models are combined in vcomb, then this describes slightly better variation, being that it is more negative. 
+#However, I believe that these different fitts don't do that much better of explaining the variation, because the value for which model best describes the variation do not look much different. 
+
+```
+
+
+2. Fish Cost Data
+
+```{r}
+fish <- read.delim("C:/Users/Jordy/Desktop/Biometry Lecture Notes/fish.dat")
+View(fish)
+
+
+year1970<-fish$Price.1970
+year1980<-fish$Price.1980
+plot(year1980~year1970)
+
+xdev<-year1970-mean(year1970)
+ydev<-year1980-mean(year1980)
+
+
+b1<-sum((xdev)*(ydev))/sum(xdev^2)
+b0<-mean(year1980)-mean(year1970)*b1
+c(b1,b0)
+
+# slope= 2.701553 
+#y intercept=  -1.233836
+#these are the calcualted values i got for the slope and intercept
+
+probf <- function(p,X,Y)
+{
+  b0 <- p[1]; b1 <- p[2]; sd <- p[3]
+
+  rsd <- (b0+b1*X)-Y
+  -sum(dnorm(rsd,mean=0,sd=sd,log=T))
+}
+
+
+opt.reg<-optim(c(1,0,5),probf, X=fish$Price.1970, Y=fish$Price.1980)
+
+opt.reg$par
+#y intercept= -1.192330  slope= 2.700763 sd= 25.808130
+#these are the values that optim calculated for the slope and intercept. there is no diffference from what the expected (optim) to observed(my calculations) values.
+
+plot(Price.1980~Price.1970, data=fish)
+abline(opt.reg$par[1:2], col="black", lty=1)
+
+#This is showing a linear relationship between the prices of 1970 as an indication for the prices of 1980. There is a slope of about 2.7 , which is obviously not equal to 0, so thus we can show that the 1980 fish prices are in fact dependent on the 1970 fish prices. 
+
+library(lattice)
+
+grid<-expand.grid(intercept=seq(from=-4.5, to=3.5, by=0.01), slope=seq(from=2.58, to=2.8, by=0.01))
+
+llike=NULL
+for (i in 1:dim(grid)[1])
+  {
+    llike = c(llike,
+        probf(c(grid$intercept[i],grid$slope[i],25.808130),
+        X=fish$Price.1970,
+        Y=fish$Price.1980))
+  }
+
+require(lattice)
+print(contourplot(llike~slope+intercept, grid, cuts = 50, xlab="x",ylab="y"))
+
+
+
+#this contour plot just shows us how optim was able to calculate the values that it did.This is just showing us that the best value for these data to show that there is no difference between the 1970 and 1980 fish prices. The best value for the slope would be about 2.7 (which I found) and the best value for the Yint is about -1.5, which Is very similar to mine. 
+
+```
+Compare estimates you obtain with the contour to those estimated by lm
+
+
+```{r}
+
+summary(lm(fish$Price.1980~fish$Price.1970, data=fish))
+opt.reg$par
+
+
+```
+
+Does 1970 predict prices of 1980?
+
+
+```{r}
+fit.gen<-glm(Price.1980~Price.1970, data=fish)
+fit.nest<-glm(fish$Price.1980~1)
+anova(fit.gen,fit.nest, test="Chisq")
+
+
+#This further supports a significant effect of the prices in 1970 on the price in 1980. 
+
+```
+
+
+
+
+
+
+COMBINING CATEGORICAL AND CONTINUOUS DATA
+
+```{r}
+
+clover <- read.csv("C:/Users/Jordy/Desktop/Biometry Lecture Notes/clover.csv")
+
+library(lattice)
+print(xyplot(clover ~ Yarrow | Area, data=clover, ylab= "Site Location"))
+
+g1 <- lm(clover~Yarrow, data=clover, subset=Area=="A")
+g2 <- lm(clover~Yarrow, data=clover, subset=Area=="B")
+g3 <- lm(clover~Yarrow, data=clover, subset=Area=="C")
+plot(clover~Yarrow,data=clover,pch=unclass(Area))
+abline(coef(g1),lty=1) #site A: barely any slope difference between A and B
+abline(coef(g2),lty=2) #site B: very close to A's slope
+abline(coef(g3),lty=3) #site C: very different from the slope of A and B
+
+clover.aov<- aov(clover~ Area + Yarrow + Area: Yarrow, data=clover)
+summary(clover.aov)
+#Area:Yarrow    0.546 here we look at the interaction between the two. We can fail to reject the null that clover yield is dependent on Yarrow density and Area together, however the p-value of the Yarrow density on the growth of clovers effect. So this means that the Yarrow does have an effect on the clover density, but it doesn't matter in which area you are. ONe thing to consider is the number of clovers are present in each area.
+
+
+#Double check now using lm instead of aov and can calculate changes in slopes and intercepts using the Y=mx + b formula.
+
+clover.lm <- lm(clover~Area + Yarrow + Area: Yarrow, data=clover)
+summary(clover.lm)
+
+coef(clover.lm)
+
+#Y=m(x) + b
+#Calculate Y for each location:  Test whether slopes are the same, if they are, you can remove that term and test for the Y intercept. If there is evidence present that the slopes are different,you can reject the null and can conclude that clover yield is of site and Yarrow density. The area designated as 'C'has a Y intercept that is greater than sites A and B by about +8, indicating that there is a greater abundance of clovers on site C. 
+
+#A:   55.218773  +  (-0.094260811 * Yarrow)
+#B:   (55.218773+0.605658)  +  (-0.094260811-0.002256)*(Yarrow)
+#C:   (55.218773+8.081393)  +  (-0.094260811-0.053791)*(Yarrow)
+
+```
+
+
+
+
+
+
+
+2. Phenotypes Data
+
+```{r}
+phenotypes2015.03.30 <- read.csv("C:/Users/Jordy/Desktop/Biometry Lecture Notes/phenotypes2015-03-30.csv")
+
+
+phen<- phenotypes2015.03.30
+library(dplyr)
+
+second <- phen %>% filter (experiment=="cofc-second")
+
+second.mn <- second%>% group_by(Accession,treatment) %>% summarise(biomass.mn = mean(biomass, na.rm=T), fruitnum.mn = mean(fruitnum,na.rm=T))
+
+par(mfrow=c(1,2))
+plot(fruitnum.mn~biomass.mn, data=second.mn)
+plot(fruitnum.mn~biomass.mn+treatment+biomass.mn:treatment,data=second.mn)
+
+secondaov <- aov(log(fruitnum.mn)~biomass.mn+treatment+biomass.mn:treatment, data=second.mn)
+
+summary(secondaov)
+
+#This shows that biomass, treatment which is the highwater, and the biomass:highwater all have an effect. So this is good in showing that yes, treatment has an effect, but WE have no clue with what treatment(s) have an effect on the fruitnumber.  
+
+fruitsy<-lm(log(fruitnum.mn)~biomass.mn+treatment+biomass.mn:treatment,data=second.mn)
+summary(lm(log(fruitnum.mn)~biomass.mn+treatment+biomass.mn:treatment,data=second.mn))
+
+resid.2 <-resid(fruitsy)
+
+qqnorm(resid.2)
+qqline(resid.2)
+shapiro.test(resid.2)
+
+#Here we can see that the shapiro test does show that there is significance in the variation of the residuals, meaning that are not normal. However, the QQPlot is showing that the residuals are more normal, compared to the Shapiro. Now, it is possible to see the effect on treatment of fruitnumber.
+
+
+## For these data, what's the average fruit number in these three treatments?
+
+plot(log(fruitnum.mn)~biomass.mn, data=second.mn)
+
+#this shows that with increasing biomass, there is an increase in fruitnumber (keep in mind this is the log transformed data of the log number)
+
+plot(log(fruitnum.mn)~biomass.mn+treatment+biomass.mn:treatment, data=second.mn)
+
+#This shows that the highwater treatment has a significant effect on the fruitnumbfrom the control, while the osmocote treatment has no significant effect on the average fruit number from the control. One note I would like to point out is that while the average fruit number has no significant difference from the control, there is a less variation in the osmocote than there is in the control group. Conversely, there is a huge amount of variation occuring the highwater treatment that is much greater than both of the control and osmocote treatment groups. 
+
+```
+
+
+Frequencies:
+
+1.)  for the A genotype:
+observed--> AA:35, Aa: 89 , aa:48
+
+So from here, I calculated the allele frequencies for A and a.
+A= 35 + 35 + 89  ----> 159
+a= 89 + 48 + 48  ----> 185
+Total 'A' alleles in the population (A+a)= 344
+
+allele frequencies:
+A= 159/ 344 = .4622  (p)
+a= 185/ 344 = .5377  (q)
+
+Calculate expected from the HWE equation (172 is total number of individuals in population) I rounded these to whole numbers since you cannot get a portion of an individual in the population. 
+Expected genotype frequencies:
+```{r}
+
+#AA1=(.4622*.4622)*172
+#AA frequency .2136
+AA1=37
+
+#Aa1= 2*(.4622*.5377)*172
+#Aa .497 
+Aa1=85
+
+#aa1=(.5377*.5377)*172 
+#aa  .289
+aa1=50
+
+#expected genotype individuals
+AA1=37
+Aa1=85
+aa1=50
+
+#Observed genotype frequencies
+
+AA = 35   # frequency is 0.2034884
+Aa=  89    #frequency is 0.5174419
+aa=  48    #frequency is 0.2790698
+
+obs<-c(AA, Aa, aa)
+exp<-c(AA1, Aa1,aa1)
+
+G1=2*sum(obs*log(obs/exp))
+G1  #.3765
+1-pchisq(G1,1)
+#.5394559
+
+#This means that the observed genotype frequenices are in HWE with the expected values. This is determined from the G-stat # and the 1-pchisq which determined that there is 53% similarity between the observed and expected. THere is no significant difference between the O and E. 
+```
+
+
+
+2.) 
+for the A2 genotype:
+observed genotypes--> AA:51, Aa: 55 , aa:53
+
+So from here, I calculated the allele frequencies for A and a.
+A=  51 + 51 + 55 ---->157
+a= 53 + 53 +55 -----> 161
+Total 'A' alleles in the population (A+a)= 318
+
+allele frequencies:
+A= 157/ 318 = .4937  (p)
+a= 161/ 318 = .5063  (q)
+
+Calculate expected from the HWE equation (159 is total number of individuals in population) I rounded these to whole numbers since you cannot get a portion of an individual in the population. 
+
+
+
+```{r}
+
+AA2=(.4937*.4937)*159
+#AA frequency 
+AA2 #39
+
+Aa2= 2*(.5063*.4937)*159 
+Aa2  #79
+
+aa2=(.5063*.5063)*159
+
+aa2  #41
+
+#expected genotype individuals
+AA2=39
+Aa2=79
+aa2=41
+
+#Observed genotype frequencies
+
+AAo = 51   # frequency is 0.3207
+Aao=  55    #frequency is 0.3459
+aao=  53    #frequency is 0.3333
+
+obs1<-c(AAo, Aao, aao)
+exp1<-c(AA2, Aa2,aa2)
+
+G2=2*sum(obs1*log(obs1/exp1))
+G2  #14.74262
+1-pchisq(G2,1)
+#0.0001232291
+#THese observed genotype frequencies for the A allele are NOT in HWE because there is significant difference between the observed and expected genotype frequencies. This means that there is/are mechanisms of genotypic change occurring in a population; these might be a result of mutation, natural selection may be occurring, the population maybe small, there maybe selective breeding, or migration might be occurring disrupting the HWE.
+
+```
+
+
+3. ) Observed genotypes:
+
+AA: 12, Aa: 14, aa: 3
+
+So from here, I calculated the allele frequencies for A and a.
+A= 12+12+14   ----> 38
+a= 3+3+14   -----> 20
+Total 'A' alleles in the population (A+a)= 58
+
+allele frequencies:
+A=  .655 (p)
+a= .3448  (q)
+
+Calculate expected from the HWE equation (29 is total number of individuals in population) I rounded these to whole numbers since you cannot get a portion of an individual in the population. 
+
+```{r}
+
+
+AA3=(.655*.655)*29
+AA3 #12
+
+Aa3= 2*(.655*.3448)*29 
+Aa3  #13
+
+aa3=(.3448*.3448)*29
+
+aa3  #4
+
+#expected genotype individuals
+AA3=12
+Aa3=13
+aa3=4
+
+#Observed genotypes and their frequencies
+
+AAO = 12     #frequency is .4137
+AaO=  14    #frequency is   .4827
+aaO=  3    #frequency is   .103
+
+obs2<-c(AAO, AaO, aaO)
+exp2<-c(AA3, Aa3,aa3)
+
+G3=2*sum(obs2*log(obs2/exp2))
+G3  #.3489
+1-pchisq(G3,1)
+#.5547   this shows that there is no difference between the expected and observed values, and that there is no deviation from HWE
+

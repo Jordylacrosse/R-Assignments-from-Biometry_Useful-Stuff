@@ -1,0 +1,197 @@
+---
+title: "Lab 2 19 Power analyses and pttest"
+author: "Jordy Taylor"
+date: "Thursday, February 19, 2015"
+output: html_document
+---
+
+
+POWER ANALYSIS:
+
+T-test: use power. test () to find the following
+1) power when sd=1, delta=2, n=10, alpha=.05
+2.)delta when sd=1, power=.9, n=10, alpha=.05
+3.) n when sd=1, power=.9, delta=2, alpha=.05
+
+power.t.test(n=10, delta=2,sd=1,sig.level=0.05,power=NULL)
+
+     Two-sample t test power calculation 
+
+              n = 10
+          delta = 2
+             sd = 1
+      sig.level = 0.05
+          power = 0.988179
+    alternative = two.sided
+
+NOTE: n is number in *each* group
+
+2. ) 
+    power.t.test(n=10, delta=NULL,sd=1,sig.level=0.05,power=.9)
+
+     Two-sample t test power calculation 
+
+              n = 10
+          delta = 1.53367
+             sd = 1
+      sig.level = 0.05
+          power = 0.9
+    alternative = two.sided
+
+NOTE: n is number in *each* group
+
+3.) power.t.test(n=NULL, delta=2,sd=1,sig.level=0.05,power=.9)
+
+     Two-sample t test power calculation 
+
+              n = 6.386756
+          delta = 2
+             sd = 1
+      sig.level = 0.05
+          power = 0.9
+    alternative = two.sided
+    
+    
+    Power for 1 way ANOVA
+    use power.anova.test to show power changes when alpha=.05 when the number of levels changes from 2 through 5 when within var is 1 and var is 1.2 and number of observations equals 5. 
+    Power for a sample size of 2= .5759
+    Power for a sample size of 3= .7827
+    Power for a sample size of 4= .8966
+    Power for a sample size of 5= .9534
+    
+    How do the same analysis, but hold the sample size to 20? how does power change?
+    Balanced one-way analysis of variance power calculation 
+
+         groups = 20
+              n = 5
+    between.var = 1.2
+     within.var = 1
+      sig.level = 0.05
+          power = 1
+          
+          
+          So bascially you won't have any type 2 error
+          
+          
+    
+    ------------------------------------------------------------------------------
+    
+    
+    
+
+PAIRED T-TEST
+ 
+  with(mice, t.test(before,after, paired=F))
+
+  Welch Two Sample t-test
+
+data:  before and after
+t = 2.2237, df = 25.638, p-value = 0.0352
+alternative hypothesis: true difference in means is not equal to 0
+95 percent confidence interval:
+ 0.3448751 8.8551249
+sample estimates:
+mean of x mean of y 
+ 89.73333  85.13333 
+
+> with(mice, t.test(before,after, paired=T))
+
+
+
+	Paired t-test
+
+data:  before and after
+t = 3.4035, df = 14, p-value = 0.004283
+alternative hypothesis: true difference in means is not equal to 0
+95 percent confidence interval:
+ 1.70123 7.49877
+sample estimates:
+mean of the differences 
+                    4.6 
+                    
+      THESE ARE COMPLETELY DIFFERENCE GROUPS: THERE WAS A CHANGE IN THE MICE
+      
+      
+      -----------------------------------------------------------------------
+      
+      2. CALCULATING SUMS OF SQUARES
+      
+      
+      
+> npk <- read.csv("C:/Users/Jordy/Desktop/Biometry Lecture Notes/R Studio/npk.R", header=FALSE)
+>   View(npk)
+      
+      Boxplot of this shit:   > boxplot(yield~N, xlab="independent", ylab="yield")
+      
+      Calculate the sums of squares above: 
+      
+      SO CALCULATE MEANS:
+      
+      
+      tapply(npk$yield, list(npk$N),mean)
+       0        1 
+52.06667 57.68333   
+
+This is saying the means of the two nitrogen groups of the 2 treatments
+
+
+
+
+SD: 
+
+ tapply(npk$yield, list(npk$N),sd)
+       0        1 
+5.377957 5.791347 
+
+CALCULATING THE SUMS OF SQUARES:
+
+GRAND MEAN: mean(yield)
+[1] 54.875
+
+
+ ( grand mean - mean of i) this is BETWEEN
+  
+  12( 54.875 - 52.0667) when N=0     
+  12( 54.875-57.683) when N=1         
+  SUMS OF SQUARES OF BETWEEN IS :   189 TOTAL
+  
+  
+  
+  SUMS OF SQUARES OF WITHIN THE SAMPLE:
+     n=0 -----318.1467
+     n=1-------368.9367
+     Sum of n=0 + n=1 ----->  687.0834
+     
+     
+     
+     
+     Mean Square
+     
+     MS W  =  687.0834/ 24-2
+     31.23106
+     
+     MS B = 189/ 1 = 189
+    
+     F ratio---->  189/ 31.2
+     6.057
+     
+     
+     
+     anova(lm(yield~N, data=npk))
+Analysis of Variance Table
+
+Response: yield
+          Df Sum Sq Mean Sq F value  Pr(>F)  
+N          1 189.28 189.282  6.0607 0.02213 *
+Residuals 22 687.08  31.231                  
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+     
+      
+      
+      
+      
+      
+      
+      
+      

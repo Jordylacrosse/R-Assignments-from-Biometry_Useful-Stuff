@@ -1,0 +1,188 @@
+March 10th Lab
+Two-sample test
+
+Take the data in 'cloud.csv
+
+```{r}
+clouds <- read.csv("C:/Users/Jordy/Desktop/Biometry Lecture Notes/clouds.csv")
+View(clouds)
+aov(Unseeded~Seeded, data=clouds)
+plot(aov(Unseeded~Seeded, data=clouds))
+
+qqnorm(clouds)
+
+
+```
+Determine if data are distributed normally. If not find a good transformation and use a
+parametric test
+
+```{r}
+plot(hist(clouds$Unseeded))
+plot(hist(clouds$Seeded))
+
+hist(log(clouds$Unseeded))
+hist(log(clouds$Seeded))
+
+plot(clouds)
+plot(log(clouds))
+
+aov(log(Unseeded)~log(Seeded),data=clouds)
+
+summary(aov(log(Unseeded)~log(Seeded),data=clouds))
+
+plot(aov(log(Unseeded)~log(Seeded),data=clouds))
+
+```
+
+
+
+
+perform a Wilcoxon test on the untransformed data
+```{r}
+x<-(clouds$Unseeded)
+x
+y<-(clouds$Seeded)
+    
+xy<- c(x,y)    
+
+ranks<-rank(xy)
+xranks<-ranks[1:length(x)]
+yranks<-ranks[(length(x)+1) : (length(x) + length(y))]
+sum.R<-sum(yranks)
+    
+xranks    
+    
+yranks    
+
+c<-length(x)*length(y)+ (length(y)*length(y)+1)/2-sum.R
+c   #190.5
+
+if ((length(x)*length(y)-c)<c)
+  f
+u<-c
+else
+  f
+u<-length (x)*length(y)-c
+u   #485.5
+(1-pwilcox(u,length(x),length(y)))
+
+#  u>c
+
+Other way to do it:
+ 
+wilcox.test(x,y)
+
+```
+
+One-way anova analogue
+
+
+```{r}
+cuckoo <- read.csv("C:/Users/Jordy/Desktop/Biometry Lecture Notes/cuckoo.csv")
+>   View(cuckoo)
+m.p<-(cuckoo[cuckoo$species=="m.pipit",])
+t.p<-(cuckoo[cuckoo$species=="t.pipit",])
+sprw<-(cuckoo[cuckoo$species=="h.sprw",])
+robin<-(cuckoo[cuckoo$species=="robin",])
+wtail<-(cuckoo[cuckoo$species=="wtail",])
+wren<-(cuckoo[cuckoo$species=="wren",])
+
+hist(m.p$length)
+hist(t.p$length)
+hist(sprw$length)
+hist(robin$length)
+hist(wtail$length)
+hist(wren$length)
+
+as.factor(cuckoo$species)
+summary(aov(log(length)~species, data=cuckoo))
+
+plot(aov(log(length)~species, data=cuckoo))
+#this has more power than the kruskal test, this shows that the data are significantly related to one another
+
+
+library(lattice)
+histogram(~length|species, data=cuckoo)
+
+kruskal.test(length~species, data=cuckoo)
+
+#this says that these data are not significanlty correlated
+     
+```
+
+ Planned comparison
+ 
+  Test the a priori hypothesis that the control
+is different than the 4 treatments. Make sure you test to see if there is any effect first.
+
+```{r}
+pea <- read.csv("C:/Users/Jordy/Desktop/Biometry Lecture Notes/pea.csv")
+>   View(pea)
+
+control<-(pea[pea$sugar=="cntrl",2])
+glu<-(pea[pea$sugar=="glu",2])
+fru<-((pea[pea$sugar=="fru",2]))
+gf<-(pea[pea$sugar=="glufru",2])
+suc<-(pea[pea$sugar=="suc",2])
+
+L<-mean(control)-.25*mean(glu)-.25*mean(fru)-.25*mean(gf)-.25*mean(suc)
+
+
+L  #this is the difference of the control mean from the means of the experiemental groups. See function a posteriori function below too look at comparisons
+
+SEl<-sqrt(1+.25^2+.25^2+.25^2+.25^2)* sqrt (5.4289/10)
+SEl
+#L-0/SEl
+10.2/.82
+#t=12.43902
+1-pt(12.43902,df=45)
+#p=2.22 x 10^-16
+
+with(pea,pairwise.t.test(length,sugar))
+
+
+as.factor(pea$sugar)
+aov(length~sugar, data=pea)
+summary(aov(length~sugar, data=pea))
+plot(aov(length~sugar, data=pea))#normal
+
+
+
+
+```
+
+Unplanned comparisons
+
+Use pairwise t-tests and Tukey's HSD test to perform a post hoc test on the Cuckoo data present in
+'cuckoo.csv'
+
+```{r}
+View(cuckoo)
+
+with(cuckoo,pairwise.t.test(length,species))
+
+
+as.factor(cuckoo$species)
+summary(aov(log(length)~species, data=cuckoo))
+
+TukeyHSD(aov(length~as.factor(species), data=cuckoo))
+par(las=1)
+par(mar=c(5,13,4,2))
+plot(TukeyHSD(aov(length~as.factor(species), data=cuckoo)))  
+
+```
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+

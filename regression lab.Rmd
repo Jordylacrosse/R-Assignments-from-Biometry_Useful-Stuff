@@ -1,0 +1,92 @@
+---
+title: "Regression Lab"
+author: "Jordy Taylor"
+date: "Tuesday, March 24, 2015"
+output: html_document
+---
+
+
+Take the data in fruit_count.csv.  Use the data in this dataframe to examine the hypothesized relationship. Use the linear regression techniques mentioned in class. Calculate the necessary quantities in R but don't use the lm . Make sure to plot your data and the resulting regression line (function abline() takes the intercept and slope in a veotr: 'abline(c(b0,b1))
+
+```{r}
+fruit_count <- read.csv("C:/Users/Jordy/Desktop/Biometry Lecture Notes/fruit_count.csv")
+
+fruit_count=fruit_count[order(fruit_count$diameter),]
+#View(fruit_count)
+#diameter<-c(65,78.5,76,47,25,28,10,22,40,54,73,44)
+diameter=fruit_count$diameter
+#fruits<-c(2027,1879,2723,984,442,519,347,666,1882,1111,1669,1193)
+fruits=fruit_count$fruits
+plot(fruits~diameter)
+
+
+#SLOPE
+xdev<-diameter-mean(diameter)
+ydev<-fruits-mean(fruits)
+slope<-sum((xdev)*(ydev))/sum(xdev^2)
+slope
+#28.01765
+
+#Yintercept
+y<-mean(fruits)-mean(diameter)*slope
+y
+#-26.49
+
+plot(fruits~diameter)
+abline(c(y,slope))
+
+
+
+```
+Now calculate the confidence interval around b1 for the fruit count
+
+```{r}
+y.hat <- y + slope * diameter
+ss.explained <- sum((y.hat-mean(fruits))^2)
+ss.unexplained <- sum((y.hat-fruits)^2)
+stderr.b1 <- sqrt((ss.unexplained/7)/sum(xdev^2))
+stderr.b1
+#6.344425
+
+lower <- slope - qt(0.95,10)*stderr.b1
+upper <- slope + qt(0.95,10)*stderr.b1
+lower
+#16.51863
+upper
+#39.51667
+```
+Confidence Intervals around Y
+```{r}
+MS.exp<-ss.explained/1
+MS.error<-ss.unexplained/10
+MS.exp/MS.error
+#27.85998
+
+1-pf((MS.exp/MS.error),1,10)
+#0.0003585396
+
+std.yhat <- sqrt((ss.unexplained/10)*((1/12)+(xdev^2/sum(xdev^2))))
+std.yhat
+
+
+upper <- y.hat + qt(0.95,10)*std.yhat
+upper  
+lower <- y.hat - qt(0.95,10)*std.yhat
+lower  
+
+points(upper~diameter,type="l",lty=2)
+points(lower~diameter,type="l",lty=2)
+
+```
+ R Squared
+ 
+```{r}
+R.squared <- ss.explained/(ss.explained+ss.unexplained)
+R.squared
+#.73586
+lm.summary<- summary(lm(fruits~diameter))
+lm.summary
+lm.summary$r.squared
+
+#.7358689
+

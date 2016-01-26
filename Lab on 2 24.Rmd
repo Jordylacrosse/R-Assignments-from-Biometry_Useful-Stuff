@@ -1,0 +1,149 @@
+Specifying factors
+Make a vector that has ten elements, but only three types of elements. The relative numbers
+of the element types is not important here.
+vector<-c("cat","dog","rat","rat","cat","cat","dog","dog","dog","cat")
+
+. convert the vector to a factor using as.factor()
+. try the functions 'levels() and unclass()' on the factor you create
+. try the function 'relevel()' as well. It can be used to change which is the first level in a factor.
+Use it on the vector you converted to a factor above.
+
+ as.factor(vector1)
+ [1] cat dog rat rat cat cat dog dog dog cat
+Levels: cat dog rat
+> levels(as.factor(vector1))
+[1] "cat" "dog" "rat"
+> unclass(as.factor(vector1))
+ [1] 1 2 3 3 1 1 2 2 2 1
+attr(,"levels")
+[1] "cat" "dog" "rat"
+> relevel(as.factor(vector1))
+Error in relevel.factor(as.factor(vector1)) : 
+  argument "ref" is missing, with no default
+> relevel(as.factor(vector1),"cat")
+ [1] cat dog rat rat cat cat dog dog dog cat
+Levels: cat dog rat
+
+
+--------------------------------------------------------------------
+ Specifying One-way Anovas in R
+
+
+Install and > library(ISwR)
+dataframe is called red.cell.folate
+ help(red.cell.folate)
+ 
+ 
+  residuals(aov1)
+         1          2          3          4          5          6          7          8 
+-73.625000 -65.625000 -41.625000 -25.625000  30.375000  37.375000  63.375000  75.375000 
+         9         10         11         12         13         14         15         16 
+-50.444444 -46.444444 -30.444444  -7.444444  -1.444444  16.555556  28.555556  38.555556 
+        17         18         19         20         21         22 
+ 52.555556 -37.000000 -20.000000  -8.000000  15.000000  50.000000 
+ 
+> fitted(aov1)
+       1        2        3        4        5        6        7        8        9       10 
+316.6250 316.6250 316.6250 316.6250 316.6250 316.6250 316.6250 316.6250 256.4444 256.4444 
+      11       12       13       14       15       16       17       18       19       20 
+256.4444 256.4444 256.4444 256.4444 256.4444 256.4444 256.4444 278.0000 278.0000 278.0000 
+      21       22 
+278.0000 278.0000 
+
+> r1<-residuals(aov1)
+> f1<-fitted(aov1)
+> r1+f1  -------------------------> returns the observed data 
+but if we were to square these then add them together, you get the sum of squares total
+
+  1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16  17  18  19  20  21  22 
+243 251 275 291 347 354 380 392 206 210 226 249 255 273 285 295 309 241 258 270 293 328
+
+
+Shapiro-wilk
+
+
+Shapiro-Wilk normality test
+
+qqnorm(r1)
+
+data:  r1
+W = 0.966, p-value = 0.6188
+
+--------------------------------------------------------------------------------------
+
+
+Multiway Anova
+download the pcr data
+
+Set up
+a 2-way model to test for both of these effects and their interaction.
+
+mgtemp<-as.factor(pcr$mg)
+> mgyield<-as.factor(pcr$yield)
+
+pcr.main<-aov(yield~temp+mg, data=pcr)
+> summary(pcr.main)
+            Df Sum Sq Mean Sq F value Pr(>F)   
+temp         1  591.8   591.8  10.488 0.0035 **
+mg           1  251.3   251.3   4.455 0.0454 * 
+Residuals   24 1354.1    56.4                  
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+---------------------------
+3 way Anova
+interaction.plot(N,P,yield, data=npk)_____ there is an interaction
+interaction.plot(N,K,yield, data=npk)______ there is no interaction
+interaction.plot(P,K,yield, data=npk)______ there is no interaction
+
+summary(aov(yield~N*P*K, data=npk))
+summary(aov(yield~N*P*K+block, data=npk))
+By adding the block portion into the equation, F value increases thus increasing the power of the analysis. 
+
+-------------------------------------
+Testing for the assumption of equal variance
+
+plot(mgtemp)
+> plot(pcr.main)
+Hit <Return> to see next plot: 
+Hit <Return> to see next plot: 
+Hit <Return> to see next plot: 
+Hit <Return> to see next plot: 
+
+--------------------------------------------------
+
+Bartlett'S Test
+
+Bartlett test of homogeneity of variances
+
+data:  yield by N
+Bartlett's K-squared = 0.0577, df = 1, p-value = 0.8102
+
+The null hypothesis is saying that variance is 0. The p value is saying that the variances are equal..baiscally, the normal stuff.
+
+--------------------------------------------------------
+
+Complete randomized design with blocking
+There is a 'block' variable in the 'capedata update2.csv' dataset. This indicates which plot
+
+the experiment was performed upon.
+
+'treat' on 'size.cm'. Only do it for date='9/4/03'.
+```{r}
+capedata<-read.csv("capedata_update2.csv")
+capedata
+names(capedata)
+
+
+september<-capedata[capedata$date=="9/4/03",]
+september
+
+treat.fac<-as.factor(september$treat)
+block.fact<as.factor(september$block)
+aov.sep<-aov(size.cm~treat.fac, data=september)
+aov.sep
+aov.sep.block<-aov(size.cm~treat.fac+block, data=september)
+aov.sep.block
+summary(aov.sep)
+summary(aov.sep.block)
+
